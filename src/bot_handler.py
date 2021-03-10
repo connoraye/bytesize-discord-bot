@@ -80,7 +80,7 @@ def main():
 
 @client.event
 async def on_ready():
-    print(f"We have logged in as {client.user}")
+    logger.info(f"We have logged in as {client.user}")
 
 @client.event
 async def on_message(message):
@@ -89,7 +89,7 @@ async def on_message(message):
         return
     
     if msg.startswith("!hello"):
-        logger.info("Received !hello command")
+        logger.info(f"Received !hello command from {message.author}")
         await message.channel.send("Hello, I'm the ByteSize bot. People know me as Gigabyte.")
 
 if __name__ == '__main__':
