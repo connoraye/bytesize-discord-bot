@@ -4,6 +4,10 @@ import os
 import socket
 import sys
 import logging
+import json
+
+from nacl.signing import VerifyKey
+from nacl.exceptions import BadSignatureError
 
 def setup_logging(logger_level):
     the_logger = logging.getLogger()
@@ -74,23 +78,51 @@ logger = setup_logging(args.log_level)
 
 client = discord.Client()
 
-def main():
-    logger.info(f'Discord bot token", "token": {args.discord_bot_token}')
-    client.run(str(args.discord_bot_token))
+PING_PONG = {"type": 1}
+RESPONSE_TYPES =  { 
+                    "PONG": 1, 
+                    "ACK_NO_SOURCE": 2, 
+                    "MESSAGE_NO_SOURCE": 3, 
+                    "MESSAGE_WITH_SOURCE": 4, 
+                    "ACK_WITH_SOURCE": 5
+                  }
 
-@client.event
-async def on_ready():
-    logger.info(f"We have logged in as {client.user}")
-
-@client.event
-async def on_message(message):
-    msg = message.content
-    if message.author == client.user:
-        return
+def verify_signature(event):
+    raw_body = event.get("rawBody")
+    auth_sig = event['params']['header'].get('x-signature-ed25519')
+    auth_ts  = event['params']['header'].get('x-signature-timestamp')
     
-    if msg.startswith("!hello"):
-        logger.info(f"Received !hello command from {message.author}")
-        await message.channel.send("Hello, I'm the ByteSize bot. People know me as Gigabyte.")
+    message = auth_ts.encode() + raw_body.encode()
+    verify_key = VerifyKey(bytes.fromhex(arg.discord_bot_token))
+    verify_key.verify(message, bytes.fromhex(auth_sig)) # raises an error if unequal
+
+def ping_pong(body):
+    if body.get("type") == 1:
+        return True
+    return False
+    
+def lambda_handler(event, context):
+    logger.info(f'Discord bot started", "event": {event}, "token": {args.discord_bot_token}')
+
+    try:
+        verify_signature(event)
+    except Exception as e:
+        raise Exception(f"[UNAUTHORIZED] Invalid request signature: {e}")
+
+    body = event.get('body-json')
+    if ping_pong(body):
+        return PING_PONG
+    
+    # dummy return
+    return {
+            "type": RESPONSE_TYPES['MESSAGE_NO_SOURCE'],
+            "data": {
+                "tts": False,
+                "content": "BEEP BOOP",
+                "embeds": [],
+                "allowed_mentions": []
+            }
+        }
 
 if __name__ == '__main__':
-    main()
+    lambda_handler(context, event)
