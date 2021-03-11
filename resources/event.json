@@ -2,9 +2,12 @@
     "rawBody": "",
     "params": {
         "header": {
-            "x-signature-ed25519": "value",
-            "x-signature-timestamp": "value2"
-        }
-    },
+            "accept": "*/*", 
+            "content-type": "application/json", 
+            "Host": "", 
+            "User-Agent": "Discord-Interactions/1.0 (+https://discord.com)", 
+            "x-signature-ed25519": "value2", 
+            "x-signature-timestamp": "value3"}
+        },
     "message": "Event message"
 }
