@@ -43,6 +43,7 @@ def get_parameters():
 
     # Parse command line inputs and set defaults
     parser.add_argument("--discord-bot-token")
+    parser.add_argument("--discord-public-key")
     parser.add_argument("--log-level", default="INFO")
     parser.add_argument("--environment")
     parser.add_argument("--application")
@@ -52,6 +53,8 @@ def get_parameters():
     # Override arguments with environment variables where set
     if "DISCORD_BOT_TOKEN" in os.environ:
         _args.discord_bot_token = os.environ["DISCORD_BOT_TOKEN"]
+    if "DISCORD_PUBLIC_KEY" in os.environ:
+        _args.discord_public_key = os.environ["DISCORD_PUBLIC_KEY"]
     if "LOG_LEVEL" in os.environ:
         _args.log_level = os.environ["LOG_LEVEL"]
 
@@ -93,7 +96,7 @@ def verify_signature(event):
     auth_ts = event["params"]["header"].get("x-signature-timestamp")
 
     message = auth_ts.encode() + raw_body.encode()
-    verify_key = VerifyKey(bytes.fromhex(arg.discord_bot_token))
+    verify_key = VerifyKey(bytes.fromhex(args.discord_bot_token))
     verify_key.verify(message, bytes.fromhex(auth_sig))  # raises an error if unequal
 
 
@@ -130,4 +133,14 @@ def lambda_handler(event, context):
 
 
 if __name__ == "__main__":
-    lambda_handler(context, event)
+    try:
+        args = get_parameters()
+        logger = setup_logging("INFO")
+
+        logger.info(os.getcwd())
+        json_content = json.loads(open("resources/event.json", "r").read())
+        lambda_handler(json_content, None)
+
+    except Exception as err:
+        logger.error(f'Exception occurred for invocation", "error_message": "{err}')
+        raise err
