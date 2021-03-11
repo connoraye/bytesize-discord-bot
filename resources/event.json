@@ -6,8 +6,9 @@
             "content-type": "application/json", 
             "Host": "", 
             "User-Agent": "Discord-Interactions/1.0 (+https://discord.com)", 
-            "x-signature-ed25519": "value2", 
-            "x-signature-timestamp": "value3"}
-        },
+            "x-signature-ed25519": "", 
+            "x-signature-timestamp": ""
+        }
+    },
     "message": "Event message"
 }

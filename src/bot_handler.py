@@ -92,12 +92,13 @@ RESPONSE_TYPES = {
 
 def verify_signature(event):
     raw_body = event.get("rawBody")
-    auth_sig = event["params"]["header"].get("x-signature-ed25519")
-    auth_ts = event["params"]["header"].get("x-signature-timestamp")
-
-    message = auth_ts.encode() + raw_body.encode()
-    verify_key = VerifyKey(bytes.fromhex(str(args.discord_public_key)))
-    verify_key.verify(message, bytes.fromhex(auth_sig))  # raises an error if unequal
+    auth_signature = event["params"]["header"].get("x-signature-ed25519")
+    auth_timestamp = event["params"]["header"].get("x-signature-timestamp")
+    
+    verify_key = VerifyKey(bytes.fromhex(args.discord_public_key))
+    
+    message = f"{auth_timestamp}{raw_body}".encode()
+    verify_key.verify(message, bytes.fromhex(auth_signature))  # raises an error if unequal
 
 
 def ping_pong(body):
@@ -108,7 +109,7 @@ def ping_pong(body):
 
 def lambda_handler(event, context):
     logger.info(
-        f'Discord bot started", "event": {event}, "token": {args.discord_bot_token}'
+        f'Discord bot started", "event": "{event}", "token": "{args.discord_bot_token}", "public_key": "{args.discord_public_key}'
     )
 
     try:
