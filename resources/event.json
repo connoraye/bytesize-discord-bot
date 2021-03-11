@@ -1,0 +1,10 @@
+{
+    "rawBody": "",
+    "params": {
+        "header": {
+            "x-signature-ed25519": "value",
+            "x-signature-timestamp": "value2"
+        }
+    },
+    "message": "Event message"
+}
